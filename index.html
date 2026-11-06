@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Musashi: Sombra Ninja</title>
+<style>
+:root{--ink:#f5ecd6;--red:#e03a2f;--card:#fff6dc;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{height:100%;margin:0}
+body{overflow:hidden;background:#0d0b14;color:var(--ink);font-family:Georgia,'Times New Roman',serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+.scr{display:none;min-height:100%;align-items:center;justify-content:center;flex-direction:column;padding:16px;gap:16px}
+.scr.on{display:flex}
+#start{background:radial-gradient(circle at 78% 22%,#ffe9a8 0 5%,#f2c96b 6%,transparent 7%),linear-gradient(#1b1038,#4a1d4f 60%,#e0553a)}
+#start .row{display:flex;align-items:center;gap:48px;flex-wrap:wrap;justify-content:center}
+h1{font-size:clamp(38px,8vw,76px);margin:0;line-height:.95;letter-spacing:3px;text-shadow:0 4px 0 #000}
+h1 span{color:var(--red);display:block;font-size:.55em;letter-spacing:6px}
+.t{max-width:400px}.t p{font-size:18px;opacity:.9}
+.btn{background:var(--red);color:#fff;border:3px solid #000;padding:14px 38px;font:700 24px Georgia,serif;border-radius:10px;cursor:pointer;box-shadow:0 5px 0 #000;transition:.1s}
+.btn:hover{filter:brightness(1.15)}.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #000}
+.comic{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:780px;width:100%}
+.p{background:linear-gradient(160deg,#2b2350,#6d2f4a);border:5px solid #000;aspect-ratio:16/10;position:relative;overflow:hidden;opacity:0;transform:scale(.85) rotate(-2deg);transition:.6s;box-shadow:6px 6px 0 #000}
+.p:nth-child(2){background:linear-gradient(160deg,#5a1410,#e0553a)}.p:nth-child(3){background:linear-gradient(160deg,#05050c,#2d3b6b)}.p:nth-child(4){background:linear-gradient(160deg,#1f3b2c,#c9a24b)}
+.p.show{opacity:1;transform:none}
+.sc{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(34px,9vw,70px);padding-bottom:22%}
+.cap{position:absolute;left:0;right:0;bottom:0;background:#fff6dc;color:#111;border-top:4px solid #000;padding:6px 9px;font-size:clamp(11px,2.2vw,15px);font-style:italic}
+.bub{position:absolute;top:8px;right:8px;background:#fff;color:#111;border:3px solid #000;border-radius:16px;padding:3px 10px;font:700 clamp(11px,2.4vw,16px) Georgia}
+#game{padding:0;gap:0}
+#wrap{position:relative;width:min(100vw,200vh)}
+canvas{width:100%;height:auto;display:block;border:4px solid #000;border-radius:8px;background:#222;touch-action:none}
+.hint{font-size:13px;opacity:.75;text-align:center}
+#tc{display:none;position:absolute;inset:auto 0 8px 0;justify-content:space-between;padding:0 10px;pointer-events:none}
+#tc div{display:flex;gap:10px;pointer-events:auto}
+#tc button{width:62px;height:62px;border-radius:50%;border:3px solid #000;background:#ffffff55;color:#fff;font-size:26px;backdrop-filter:blur(3px)}
+@media (pointer:coarse){#tc{display:flex}}
+#start svg{filter:drop-shadow(0 0 12px #8fb0ffaa) drop-shadow(0 12px 10px #0008);animation:fl 3s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-10px)}}
+canvas{box-shadow:0 0 40px #000c}
+#game .hint{position:fixed;top:4px;left:50%;transform:translateX(-50%);max-width:46%;font-size:11px;opacity:.6;pointer-events:none;text-shadow:0 1px 3px #000;z-index:4}#fs{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:5;opacity:.8}@media (pointer:coarse){#fs{display:none}}
+</style></head><body>
+
+<section id="start" class="scr on">
+ <div class="row">
+  <svg width="200" height="270" viewBox="0 0 170 230" aria-label="Musashi">
+   <ellipse cx="85" cy="222" rx="55" ry="6" fill="#0008"/>
+   <path d="M118 80 q40 -10 50 20 q-20 -8 -50 5z" fill="#000"/>
+   <rect x="52" y="95" width="66" height="95" rx="24" fill="#000"/>
+   <rect x="58" y="185" width="22" height="34" rx="6" fill="#000"/><rect x="90" y="185" width="22" height="34" rx="6" fill="#000"/>
+   <circle cx="85" cy="62" r="42" fill="#000"/>
+   <path d="M120 120 L162 36" stroke="#000" stroke-width="7" stroke-linecap="round"/>
+   <path d="M118 112 L124 128" stroke="#000" stroke-width="12" stroke-linecap="round"/>
+   <path d="M40 120 L20 160" stroke="#000" stroke-width="14" stroke-linecap="round"/>
+   <path d="M120 120 L162 36" stroke="#fff" stroke-width="1.5" opacity=".5"/>
+  </svg>
+  <div class="t">
+   <h1>MUSASHI<span>SOMBRA NINJA</span></h1>
+   <p>Corre, salta y corta tu camino hacia adelante. Un ninja 100% negro contra el clan Akai.</p>
+   <button class="btn" id="play">▶ PLAY</button>
+  </div>
+ </div>
+</section>
+
+<section id="comic" class="scr">
+ <div class="comic" id="panels">
+  <div class="p"><div class="sc">🏯🌸</div><div class="cap">Musashi creció en la aldea Kage, protegiendo a su gente desde las sombras.</div></div>
+  <div class="p"><div class="sc">🔥🥷🔥</div><div class="cap">Una noche, el clan Akai, los ninjas rojos, quemó la aldea.</div><div class="bub">¡Nadie escapará!</div></div>
+  <div class="p"><div class="sc">🌑</div><div class="cap">Musashi sobrevivió. Se vistió de negro absoluto para ser uno con la noche.</div></div>
+  <div class="p"><div class="sc">⚔️⛩️</div><div class="cap">Ahora avanzará por el bosque, el templo y la fortaleza para vengar a los suyos.</div><div class="bub">¡Lo juro!</div></div>
+ </div>
+ <button class="btn" id="go" style="visibility:hidden">Comenzar ⚔</button>
+</section>
+
+<section id="game" class="scr">
+ <div id="wrap"><canvas id="c" width="900" height="450"></canvas>
+  <div id="tc"><div><button data-k="a">◀</button><button data-k="d">▶</button></div><div><button data-k="x">⚔</button><button data-k="w">⤒</button></div></div>
+ </div>
+ <div class="hint" id="hint"></div><button class="btn" id="fs" style="font-size:16px;padding:6px 18px">⛶ Pantalla completa (F)</button>
+</section>
+
+<script>
+const $=id=>document.getElementById(id),show=id=>{document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));$(id).classList.add('on')};
+$('play').onclick=()=>{show('comic');document.querySelectorAll('.p').forEach((p,i)=>setTimeout(()=>p.classList.add('show'),400+i*1500));setTimeout(()=>$('go').style.visibility='visible',6600)};
+$('go').onclick=()=>{show('game');startLevel(0)};
+
+const cv=$('c'),x=cv.getContext('2d'),W=900,H=450,GY=380,G=1800,JV=-640,SP=270;
+const LV=[{n:'Bosque',seg:8,sh:.1,sky:['#1b1038','#7a3b5e'],m:'#2a1d45',acc:'#2f6b3d'},
+ {n:'Templo',seg:11,sh:.3,sky:['#0f1c3a','#c0563b'],m:'#3a2038',acc:'#8a2f2f'},
+ {n:'Fortaleza',seg:14,sh:.5,sky:['#050510','#40305f'],m:'#17142b',acc:'#6a6a8a'}];
+let L=0,phase='place',lv,P,E,S,K=[],keys={},last=0,sx=100,cam=0,mouse=0,shake=0,t0=0;
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(!keys[k]){if(k==='w'||k==='arrowup'||k===' ')jump();if(k==='x'||k==='j'||k==='z')slash()}keys[k]=1;if([' ','arrowup','arrowdown'].includes(k))e.preventDefault()});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=0);
+document.querySelectorAll('#tc button').forEach(b=>{const k=b.dataset.k;b.onpointerdown=e=>{e.preventDefault();keys[k]=1;if(k==='w')jump();if(k==='x')slash()};b.onpointerup=b.onpointerleave=()=>keys[k]=0});
+let seed=1;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+function build(i){seed=7+i*13;const c=LV[i];const g=[],pl=[],en=[];let px=0;
+ for(let s=0;s<c.seg;s++){const w=s==0?700:s==c.seg-1?600:320+rnd()*320;g.push({x:px,y:GY,w});
+  if(s>0){if(rnd()<.6)pl.push({x:px+w*.3,y:270,w:130});
+   const n=1+(rnd()<.5?1:0)+(i>0&&rnd()<.4?1:0);for(let k=0;k<n&&w>300;k++)en.push({x:px+80+rnd()*(w-160),a:px+10,b:px+w-10,y:GY,sh:rnd()<c.sh,hp:1,t:rnd()*2,f:-1,dead:0})}
+  px+=w+(s<c.seg-1?95+rnd()*45:0)}
+ return{g,pl,en,len:px,goal:px-120,c}}
+function startLevel(i){if(i>=LV.length){phase='end';return}L=i;lv=build(i);phase='place';sx=120;cam=0;K=[];S=[];
+ $('hint').textContent='1) Haz clic en el mapa para MARCAR dónde aparece Musashi. 2) A/D o flechas = mover · W/↑/Espacio = saltar (doble salto) · X/J o clic = espadazo'}
+const sup=p=>[...lv.g,...lv.pl];
+function spawnP(){let px=sx;while(!lv.g.some(g=>px>g.x+15&&px<g.x+g.w-15))px+=10;P={x:px,y:200,vx:0,vy:0,g:0,j:0,f:1,hp:5,inv:0,cd:0,sw:0,sx:px};E=lv.en.map(e=>({...e}));S=[];phase='play'}
+cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect(),m=(e.clientX-r.left)*W/r.width;
+ if(phase==='place'){sx=Math.max(100,Math.min(lv.len*.3,(m-40)/(W-80)*lv.len));spawnP()}
+ else if(phase==='play'&&!e.target.closest('#tc'))slash();
+ else if(phase==='win')startLevel(L+1);else if(phase==='lose')startLevel(L)});
+cv.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();mouse=(e.clientX-r.left)*W/r.width});
+function jump(){if(phase==='play'&&P.j<2){P.vy=JV;P.j++;P.g=0}}
+function slash(){if(phase!=='play'||P.cd>0)return;P.cd=.32;P.sw=.15;
+ E.forEach(e=>{const dx=(e.x-P.x)*P.f;if(dx>-15&&dx<80&&Math.abs(e.y-P.y)<50&&!e.dead){e.dead=1;burst(e.x,e.y-20,'#e03a2f');shake=.12}})}
+function burst(bx,by,c){for(let i=0;i<14;i++)K.push({x:bx,y:by,vx:(Math.random()-.5)*400,vy:-Math.random()*350,l:.6,c})}
+function hurt(){if(P.inv>0)return;P.hp--;P.inv=1.1;P.vy=-350;shake=.2;if(P.hp<=0)phase='lose'}
+function update(dt){
+ K.forEach(k=>{k.x+=k.vx*dt;k.y+=k.vy*dt;k.vy+=900*dt;k.l-=dt});K=K.filter(k=>k.l>0);shake=Math.max(0,shake-dt);
+ if(phase!=='play')return;
+ const dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);P.vx=dx*SP;if(dx)P.f=dx;
+ P.x=Math.max(15,P.x+P.vx*dt);P.vy+=G*dt;const py=P.y;P.y+=P.vy*dt;P.g=0;
+ if(P.vy>=0)for(const s of sup())if(P.x+8>s.x&&P.x-8<s.x+s.w&&py<=s.y+3&&P.y>=s.y){P.y=s.y;P.vy=0;P.g=1;P.j=0}
+ P.cd-=dt;P.sw-=dt;P.inv-=dt;
+ if(P.y>H+80){P.hp--;shake=.25;if(P.hp<=0)phase='lose';else{P.x=P.sx;P.y=200;P.vy=0;P.inv=1.5}}
+ E.forEach(e=>{if(e.dead)return;const d=P.x-e.x,ad=Math.abs(d);e.f=d>0?1:-1;
+  if(e.sh){e.t-=dt;if(ad<520&&e.t<0){e.t=2;S.push({x:e.x,y:e.y-22,vx:e.f*320})}}
+  else if(ad<380){e.x=Math.max(e.a,Math.min(e.b,e.x+e.f*115*dt))}
+  if(ad<22&&Math.abs(P.y-e.y)<35)hurt()});
+ S.forEach(b=>{b.x+=b.vx*dt;if(Math.abs(b.x-P.x)<14&&Math.abs(b.y-(P.y-20))<24){hurt();b.x=-999}});
+ S=S.filter(b=>Math.abs(b.x-P.x)<900);
+ if(P.x>lv.goal)phase=L==LV.length-1?'end':'win'}
+function ninja(px,py,f,c,band,t,mv,atk){x.save();x.translate(px,py);x.scale(f,1);x.fillStyle=x.strokeStyle=c;x.lineCap='round';
+ const sw=mv?Math.sin(t*16)*9:0;x.lineWidth=7;x.beginPath();x.moveTo(-3,-12);x.lineTo(-3+sw,0);x.moveTo(3,-12);x.lineTo(3-sw,0);x.stroke();
+ x.beginPath();x.ellipse(0,-24,10,15,0,0,7);x.fill();x.beginPath();x.arc(0,-45,10,0,7);x.fill();
+ x.lineWidth=4;x.beginPath();x.moveTo(-8,-47);for(let i=1;i<=4;i++)x.lineTo(-8-i*7,-47+Math.sin(t*10+i)*4+i*2);x.stroke();
+ if(band){x.fillStyle=band;x.fillRect(-10,-50,20,4);x.fillStyle='#fff';x.fillRect(3,-45,5,2)}
+ x.strokeStyle=c;x.lineWidth=4;x.beginPath();x.moveTo(4,-28);x.lineTo(atk?20:12,atk?-34:-22);x.stroke();
+ x.lineWidth=2.5;x.strokeStyle=atk?'#fff':c;x.beginPath();x.moveTo(atk?20:12,atk?-34:-22);x.lineTo(atk?46:22,atk?-40:-44);x.stroke();x.restore()}
+function bg(){const c=lv.c,gr=x.createLinearGradient(0,0,0,H);gr.addColorStop(0,c.sky[0]);gr.addColorStop(1,c.sky[1]);x.fillStyle=gr;x.fillRect(0,0,W,H);
+ x.fillStyle='#fff3c4';x.beginPath();x.arc(740,90,34,0,7);x.fill();x.fillStyle='#fff';for(let i=0;i<40;i++)x.fillRect((i*131)%W,(i*53)%200,2,2);
+ x.fillStyle=c.m;x.beginPath();x.moveTo(0,H);for(let i=0;i<=W;i+=30){const wx=i+cam*.2;x.lineTo(i,300-Math.abs(Math.sin(wx/170))*110-Math.sin(wx/47)*14)}x.lineTo(W,H);x.fill();
+ x.fillStyle=c.acc;x.globalAlpha=.55;for(let i=-1;i<12;i++){const bx=i*90-((cam*.5)%90);x.fillRect(bx,170+(i&3)*12,10,GY);x.fillRect(bx-14,230+(i&1)*20,38,5)}x.globalAlpha=1}
+function world(t){x.save();x.translate(-cam+(shake?(Math.random()-.5)*10:0),0);
+ lv.g.forEach(g=>{x.fillStyle='#0b0812';x.fillRect(g.x,g.y,g.w,H-g.y);x.fillStyle=lv.c.acc;x.fillRect(g.x,g.y,g.w,8)});
+ lv.pl.forEach(p=>{x.fillStyle='#3b2a22';x.fillRect(p.x,p.y,p.w,12);x.fillStyle=lv.c.acc;x.fillRect(p.x,p.y,p.w,4)});
+ const gx=lv.goal;x.fillStyle='#e03a2f';x.fillRect(gx,GY-130,12,130);x.fillRect(gx+90,GY-130,12,130);x.fillRect(gx-14,GY-140,130,14);x.fillRect(gx,GY-110,102,8);
+ E.forEach(e=>{if(!e.dead)ninja(e.x,e.y,e.f,'#7a1c1c','#ff3b30',t,!e.sh&&Math.abs(P.x-e.x)<380)});
+ x.fillStyle='#ddd';S.forEach(b=>{x.save();x.translate(b.x,b.y);x.rotate(t*20);x.fillRect(-7,-2,14,4);x.fillRect(-2,-7,4,14);x.restore()});
+ if(P&&phase!=='place'){x.globalAlpha=P.inv>0&&(P.inv*12|0)%2?.35:1;ninja(P.x,P.y,P.f,'#000',null,t,P.vx&&P.g,P.sw>0);x.globalAlpha=1;
+  if(P.sw>0){x.strokeStyle='#fff';x.lineWidth=4;x.globalAlpha=P.sw/.15;x.beginPath();x.arc(P.x,P.y-28,56,P.f>0?-1.1:Math.PI-.5,P.f>0?.5:Math.PI+1.1);x.stroke();x.globalAlpha=1}}
+ K.forEach(k=>{x.globalAlpha=k.l;x.fillStyle=k.c;x.fillRect(k.x,k.y,5,5)});x.globalAlpha=1;x.restore()}
+function hud(){x.font='bold 18px Georgia';x.fillStyle='#fff';x.textAlign='left';x.fillText('Nivel '+(L+1)+' · '+lv.c.n,16,28);
+ x.fillStyle='#e03a2f';x.fillText('♥'.repeat(Math.max(P?P.hp:5,0)),16,52);
+ if(P){x.fillStyle='#0008';x.fillRect(W-220,16,200,10);x.fillStyle='#e03a2f';x.fillRect(W-220,16,200*Math.min(1,P.x/lv.goal),10);x.fillStyle='#fff';x.fillText('⛩',W-30,28)}}
+function overlay(a,b){x.fillStyle='#000b';x.fillRect(0,150,W,160);x.fillStyle='#fff';x.textAlign='center';x.font='bold 44px Georgia';x.fillText(a,W/2,222);x.font='20px Georgia';x.fillText(b,W/2,265);x.textAlign='left'}
+function draw(t){if(phase==='place'){bg();x.fillStyle='#0008';x.fillRect(0,0,W,H);
+  const sc=(W-80)/lv.len;x.fillStyle='#fff';x.textAlign='center';x.font='bold 26px Georgia';x.fillText('Marca dónde aparecerá Musashi',W/2,90);x.font='15px Georgia';x.fillText('Haz clic en la zona verde de tu mapa del nivel',W/2,116);x.textAlign='left';
+  const my=230;lv.g.forEach(g=>{x.fillStyle='#8a7a60';x.fillRect(40+g.x*sc,my,g.w*sc,8)});lv.pl.forEach(p=>{x.fillStyle='#8a7a60';x.fillRect(40+p.x*sc,my-34,p.w*sc,4)});
+  lv.en.forEach(e=>{x.fillStyle='#ff3b30';x.beginPath();x.arc(40+e.x*sc,my-8,4,0,7);x.fill()});
+  x.fillStyle='#3fae5a44';x.fillRect(40+100*sc,my-60,(lv.len*.3-100)*sc,90);
+  x.fillStyle='#e03a2f';x.fillText('⛩',40+lv.goal*sc-8,my-10);
+  const hx=40+Math.max(100,Math.min(lv.len*.3,(mouse-40)/(W-80)*lv.len))*sc;x.fillStyle='#fff';x.fillRect(hx-1,my-70,2,70);x.fillStyle='#fff';x.beginPath();x.moveTo(hx,my-70);x.lineTo(hx+22,my-60);x.lineTo(hx,my-50);x.fill();
+  x.fillStyle='#ff3b30';x.fillText('● enemigos',40,my+60);return}
+ if(P){const tg=Math.max(0,Math.min(lv.len-W,P.x-330));cam+=(tg-cam)*.12}
+ bg();world(t);hud();
+ if(phase==='win')overlay('¡Nivel superado!','Toca para continuar');
+ if(phase==='lose')overlay('Musashi cayó…','Toca para reintentar');
+ if(phase==='end')overlay('¡Venganza cumplida! 🥷','Recarga la página para jugar otra vez')}
+function loop(ts){const dt=Math.min((ts-last)/1000,.05);last=ts;if(lv){update(dt);draw(ts/1000)}requestAnimationFrame(loop)}
+function ninja(px,py,f,c,band,t,mv,atk){
+ const en=!!band,r=mv?Math.sin(t*14):0,bob=mv?Math.abs(r)*2.5:Math.sin(t*3)*1.2;
+ x.fillStyle='#0007';x.beginPath();x.ellipse(px,py+2,17,4,0,0,7);x.fill();
+ x.save();x.translate(px,py-bob);x.scale(f,1);x.lineCap=x.lineJoin='round';x.shadowColor=en?'#ff7a6a88':'#8fb0ff99';x.shadowBlur=7;
+ const tail=(n,col,y0,w)=>{x.strokeStyle=col;x.lineWidth=w;x.beginPath();x.moveTo(-8,y0);for(let i=1;i<=n;i++)x.lineTo(-8-i*7,y0+Math.sin(t*9+i)*3*i/2+i*1.6+(mv?-i*.8:0));x.stroke()};
+ tail(5,en?band:c,-47,en?4:6);if(!en)tail(4,c,-42,4);
+ x.strokeStyle=en?'#2a0c0c':c;x.lineWidth=8;
+ for(const s of[-1,1]){x.beginPath();x.moveTo(s*3,-15);x.lineTo(s*3+r*s*9,-7-(mv&&r*s<0?5:0));x.lineTo(s*3+r*s*13+3,0);x.stroke()}
+ let g=c;if(en){g=x.createLinearGradient(0,-40,0,-12);g.addColorStop(0,c);g.addColorStop(1,'#1a0808')}
+ x.fillStyle=g;x.beginPath();x.moveTo(-8,-39);x.quadraticCurveTo(-14,-25,-9,-12);x.lineTo(9,-12);x.quadraticCurveTo(14,-25,8,-39);x.closePath();x.fill();
+ if(en){x.fillStyle='#111';x.fillRect(-9,-24,18,4)}
+ x.fillStyle=en?c:'#000';x.beginPath();x.arc(1,-47,10,0,7);x.fill();
+ if(en){x.fillStyle='#0b0b0b';x.fillRect(-2,-52,12,7);x.fillStyle='#fff';x.shadowColor='#fff';x.shadowBlur=4;x.fillRect(3,-50,3,2);x.fillRect(7,-50,3,2);x.shadowBlur=0;x.fillStyle=band;x.fillRect(-9,-56,20,4)}
+ x.shadowBlur=en?0:7;x.strokeStyle=en?c:'#000';x.lineWidth=6;const hx=atk?16:9,hy=atk?-33:-22;x.beginPath();x.moveTo(3,-35);x.lineTo(hx,hy);x.stroke();
+ x.lineWidth=3;x.strokeStyle='#b8c6dd';x.shadowColor='#fff';x.shadowBlur=atk?10:2;x.beginPath();x.moveTo(hx,hy);x.lineTo(atk?hx+30:hx+12,atk?hy-4:hy-26);x.stroke();
+ x.strokeStyle='#3a2a1a';x.lineWidth=4;x.shadowBlur=0;x.beginPath();x.moveTo(hx-3,hy+2);x.lineTo(hx+1,hy-2);x.stroke();
+ x.restore()}
+function mt(par,base,amp,fr,col){x.fillStyle=col;x.beginPath();x.moveTo(0,H);for(let i=0;i<=W;i+=10){const w=i+cam*par;x.lineTo(i,base-Math.abs(Math.sin(w*fr))*amp-Math.sin(w*fr*3.3)*amp*.12)}x.lineTo(W,H);x.fill()}
+function bg(){const c=lv.c,t=performance.now()/1000,gr=x.createLinearGradient(0,0,0,H);gr.addColorStop(0,c.sky[0]);gr.addColorStop(.75,c.sky[1]);gr.addColorStop(1,c.sky[1]);x.fillStyle=gr;x.fillRect(0,0,W,H);
+ for(let i=0;i<70;i++){x.globalAlpha=.4+.6*Math.abs(Math.sin(t*1.5+i));x.fillStyle='#fff';const z=i%5?1.5:2.5;x.fillRect((i*131)%W,(i*53)%230,z,z)}x.globalAlpha=1;
+ const mg=x.createRadialGradient(740,90,10,740,90,150);mg.addColorStop(0,'#fff6d0aa');mg.addColorStop(1,'#fff6d000');x.fillStyle=mg;x.fillRect(560,0,340,260);
+ x.fillStyle='#fff3c4';x.beginPath();x.arc(740,90,34,0,7);x.fill();x.fillStyle='#e6d49a';[[728,80,8],[752,100,6],[745,72,4]].forEach(a=>{x.beginPath();x.arc(a[0],a[1],a[2],0,7);x.fill()});
+ mt(.08,330,120,.006,c.m+'99');mt(.18,350,95,.009,c.m);
+ if(L>0){const pw=((-cam*.25+500)%1100+1100)%1100-100;x.fillStyle=c.m;for(let i=0;i<4;i++){x.beginPath();x.moveTo(pw-50+i*9,290-i*34);x.lineTo(pw,274-i*34);x.lineTo(pw+50-i*9,290-i*34);x.fill();x.fillRect(pw-30+i*7,288-i*34,60-i*14,22)}}
+ mt(.35,400,60,.014,'#0a0714');
+ x.globalAlpha=.7;const o=cam*.6,k0=Math.floor(o/75);for(let k=k0-1;k<k0+14;k++){const bx=k*75-o+((k*29)%30),h=210+((k*37)%90);x.fillStyle='#0a0f0c';x.fillRect(bx,GY-h,8,h);x.fillStyle=c.acc;x.fillRect(bx,GY-h,3,h);for(let y=GY-h+20;y<GY;y+=44)x.fillRect(bx-1,y,10,3);for(let j=0;j<4;j++){x.beginPath();x.ellipse(bx+(j&1?16:-10),GY-h+j*16+4,14,3,j&1?.5:-.5,0,7);x.fill()}}x.globalAlpha=1;
+ const fg=x.createLinearGradient(0,250,0,GY);fg.addColorStop(0,'#fff0');fg.addColorStop(1,'#ffffff26');x.fillStyle=fg;x.fillRect(0,250,W,GY-250);
+ x.fillStyle=['#ffc4dc','#ffb347','#9fb0ff'][L];for(let i=0;i<22;i++){const px=(((i*131-t*35-cam*.9)%W)+W)%W,py=(i*47+t*28)%H;x.globalAlpha=.7;x.beginPath();x.ellipse(px,py,3,1.6,t+i,0,7);x.fill()}x.globalAlpha=1}
+function burst(bx,by,c){for(let i=0;i<22;i++)K.push({x:bx,y:by,vx:(Math.random()-.5)*480,vy:-Math.random()*380,l:.7,c:i%3?c:i%2?'#fff':'#222'})}
+function world(t){x.save();x.translate(-cam+(shake?(Math.random()-.5)*10:0),0);const a=cam-20,b=cam+W+20;
+ lv.g.forEach(g=>{if(g.x+g.w<a||g.x>b)return;const sg=x.createLinearGradient(0,g.y,0,H);sg.addColorStop(0,'#2a2030');sg.addColorStop(1,'#050308');x.fillStyle=sg;x.fillRect(g.x,g.y,g.w,H-g.y);
+  x.fillStyle='#ffffff10';for(let i=g.x+20;i<g.x+g.w;i+=47){if(i<a||i>b)continue;x.beginPath();x.ellipse(i,g.y+30+(i*7%40),10+(i%9),5,0,0,7);x.fill()}
+  x.fillStyle=lv.c.acc;x.fillRect(g.x,g.y,g.w,9);x.fillStyle='#ffffff30';x.fillRect(g.x,g.y,g.w,2);
+  x.fillStyle=lv.c.acc;for(let i=Math.max(g.x,a);i<Math.min(g.x+g.w,b);i+=9){const hh=5+((i*13)%9);x.beginPath();x.moveTo(i,g.y+1);x.lineTo(i+2,g.y-hh);x.lineTo(i+5,g.y+1);x.fill()}
+  x.fillStyle='#000a';x.fillRect(g.x+g.w-6,g.y,6,H-g.y)});
+ lv.pl.forEach(p=>{if(p.x+p.w<a||p.x>b)return;x.fillStyle='#4a3226';x.fillRect(p.x,p.y,p.w,13);x.fillStyle='#2e1d15';for(let i=26;i<p.w;i+=26)x.fillRect(p.x+i,p.y,2,13);x.fillStyle=lv.c.acc;x.fillRect(p.x,p.y-2,p.w,5);x.fillStyle='#ffffff25';x.fillRect(p.x,p.y-2,p.w,1.5);
+  [p.x+10,p.x+p.w-10].forEach(lx=>{x.strokeStyle='#222';x.lineWidth=1.5;x.beginPath();x.moveTo(lx,p.y+13);x.lineTo(lx,p.y+24);x.stroke();const lg=x.createRadialGradient(lx,p.y+32,2,lx,p.y+32,28);lg.addColorStop(0,'#ffb34788');lg.addColorStop(1,'#ffb34700');x.fillStyle=lg;x.fillRect(lx-28,p.y+4,56,56);x.fillStyle='#e8542f';x.beginPath();x.ellipse(lx,p.y+32,6,8,0,0,7);x.fill()})});
+ const gx=lv.goal,gg=x.createRadialGradient(gx+51,GY-70,10,gx+51,GY-70,150);gg.addColorStop(0,'#ff5a3c55');gg.addColorStop(1,'#ff5a3c00');x.fillStyle=gg;x.fillRect(gx-100,GY-230,300,230);
+ x.fillStyle='#c42a1e';x.fillRect(gx,GY-130,13,130);x.fillRect(gx+90,GY-130,13,130);x.fillRect(gx+13,GY-112,77,9);x.fillStyle='#8f1a12';x.fillRect(gx+9,GY-130,4,130);x.fillRect(gx+99,GY-130,4,130);
+ x.fillStyle='#111';x.beginPath();x.moveTo(gx-22,GY-134);x.quadraticCurveTo(gx+51,GY-122,gx+124,GY-134);x.lineTo(gx+116,GY-150);x.quadraticCurveTo(gx+51,GY-138,gx-14,GY-150);x.fill();x.fillStyle='#c42a1e';x.fillRect(gx-4,GY-136,111,7);
+ E.forEach(e=>{if(!e.dead)ninja(e.x,e.y,e.f,e.sh?'#4d2a6b':'#a3231b','#ff3b30',t,!e.sh&&Math.abs(P.x-e.x)<380)});
+ x.shadowColor='#fff';x.shadowBlur=6;x.fillStyle='#e6ecf5';S.forEach(s=>{x.save();x.translate(s.x,s.y);x.rotate(t*25);for(let i=0;i<4;i++){x.rotate(Math.PI/2);x.beginPath();x.moveTo(0,0);x.lineTo(3,-3);x.lineTo(0,-9);x.lineTo(-3,-3);x.fill()}x.restore()});x.shadowBlur=0;
+ if(P&&phase!=='place'){x.globalAlpha=P.inv>0&&(P.inv*12|0)%2?.35:1;ninja(P.x,P.y,P.f,'#000',null,t,P.vx&&P.g,P.sw>0);x.globalAlpha=1;
+  if(P.sw>0){const f=P.f,cx=P.x+f*8,cy=P.y-28,a0=f>0?-1.2:Math.PI-.7,a1=f>0?.7:Math.PI+1.2;x.globalAlpha=P.sw/.15;x.fillStyle='#fff';x.shadowColor='#8fd0ff';x.shadowBlur=14;x.beginPath();x.arc(cx,cy,60,a0,a1);x.arc(cx-f*14,cy,48,a1,a0,true);x.closePath();x.fill();x.shadowBlur=0;x.globalAlpha=1}}
+ K.forEach(k=>{x.globalAlpha=Math.min(1,k.l*2);x.fillStyle=k.c;x.fillRect(k.x,k.y,3+k.l*6,3+k.l*6)});
+ x.globalAlpha=1;x.restore();
+ const vg=x.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*.9);vg.addColorStop(0,'#0000');vg.addColorStop(1,'#000a');x.fillStyle=vg;x.fillRect(0,0,W,H)}
+function hud(){x.fillStyle='#0009';x.beginPath();x.roundRect(10,10,230,60,10);x.fill();x.fillStyle='#fff';x.font='bold 16px Georgia';x.textAlign='left';x.fillText('Nivel '+(L+1)+' · '+lv.c.n,22,32);
+ for(let i=0;i<5;i++){x.fillStyle=P&&i<P.hp?'#ff3b3b':'#ffffff30';x.font='22px Georgia';x.fillText('♥',22+i*26,58)}
+ if(P){x.fillStyle='#0009';x.beginPath();x.roundRect(W-250,16,230,14,7);x.fill();const pr=Math.min(1,P.x/lv.goal),pg=x.createLinearGradient(W-250,0,W-20,0);pg.addColorStop(0,'#ffb347');pg.addColorStop(1,'#e03a2f');x.fillStyle=pg;x.beginPath();x.roundRect(W-250,16,Math.max(14,230*pr),14,7);x.fill();x.fillStyle='#000';x.beginPath();x.arc(W-250+Math.max(7,230*pr-7),23,7,0,7);x.fill()}}
+requestAnimationFrame(loop);
+</script>
+<style>
+#comic{background:#15121c;justify-content:flex-start;padding:22px 12px}
+.bk{width:100%;max-width:560px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.hd{width:100%;display:flex;justify-content:space-between;align-items:flex-end;gap:10px;border-bottom:2px solid #b3261e;padding-bottom:8px}
+.hd h2{margin:0;font:700 clamp(22px,5vw,34px)/1.05 Georgia,serif;color:#f6e7b4;letter-spacing:1px;text-shadow:2px 2px 0 #000}
+.hd i{color:#ff9d1c;font:italic 800 clamp(10px,2.2vw,13px)/1.15 'Arial Black',Impact,sans-serif;text-align:right;transform:rotate(-3deg);text-transform:uppercase;flex:none;max-width:130px}
+#comic .comic{width:100%;max-width:none;gap:8px;border:2px solid #b3261e;padding:8px;background:#0e0b14}
+#comic .p{aspect-ratio:auto;background:#000;border:2px solid #000;box-shadow:none}
+#comic .p svg{display:block;width:100%;aspect-ratio:16/10}
+#comic .cap{position:static;background:#f3e2c0;color:#2a1c10;border-top:2px solid #000;font:italic clamp(10px,2vw,13px)/1.3 Georgia,serif;padding:6px 8px}
+#comic .n{position:absolute;top:5px;left:5px;background:#fff;color:#000;border:2px solid #000;font:700 12px Georgia,serif;width:20px;height:20px;display:grid;place-items:center;z-index:2}
+#comic .bub{top:8px;right:8px;background:#fff;color:#000;border:2.5px solid #000;border-radius:50%/60%;padding:4px 10px;font:italic 900 clamp(10px,2.6vw,15px)/1 'Arial Black',Impact,sans-serif;text-transform:uppercase;transform:rotate(-3deg);z-index:2}
+#comic .bub:after{content:'';position:absolute;bottom:-9px;left:16px;border:6px solid transparent;border-top:9px solid #000}
+</style>
+<script>
+document.getElementById('comic').innerHTML=`<div class="bk">
+<div class="hd"><h2>MUSASHI · SOMBRA DE KAGE</h2><i>Capítulo I · El juramento</i></div>
+<div class="comic">
+<div class="p"><span class="n">1</span>
+<svg viewBox="0 0 200 125" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1d4e"/><stop offset=".65" stop-color="#9b4f7c"/><stop offset="1" stop-color="#e58a6a"/></linearGradient></defs>
+<rect width="200" height="125" fill="url(#g1)"/><circle cx="132" cy="64" r="27" fill="#f6d58b"/>
+<path d="M0 100 L40 62 L75 90 L110 55 L150 92 L200 70 V125 H0Z" fill="#3b2a5c"/>
+<g fill="#0b0814"><path d="M62 112V88H98V112Z"/><path d="M52 88L80 72L108 88Z"/><path d="M60 76L80 60L100 76Z"/><path d="M70 64L80 48L90 64Z"/><rect x="0" y="108" width="200" height="17"/></g>
+<g fill="#ffd36b"><rect x="68" y="95" width="6" height="9"/><rect x="86" y="95" width="6" height="9"/></g>
+<path d="M200 6Q170 12 138 30" stroke="#2a1a1a" stroke-width="2.5" fill="none"/><g fill="#f4a8c8"><circle cx="185" cy="12" r="5"/><circle cx="170" cy="20" r="4.5"/><circle cx="156" cy="26" r="5"/><circle cx="145" cy="34" r="4"/><circle cx="176" cy="31" r="3.5"/></g></svg>
+<div class="cap">Musashi creció en la aldea Kage, protegiendo a su gente desde las sombras.</div></div>
+<div class="p"><span class="n">2</span>
+<svg viewBox="0 0 200 125" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a0f1c"/><stop offset="1" stop-color="#f0702a"/></linearGradient><g id="fl"><path d="M0 0Q-9-16 1-32Q3-20 11-16Q15-24 9-32Q27-14 16 0Z" fill="#ff8a1f"/><path d="M3 0Q-2-10 4-18Q8-8 11 0Z" fill="#ffe066"/></g></defs>
+<rect width="200" height="125" fill="url(#g2)"/>
+<g fill="#0b0505"><path d="M0 112V74L20 58L40 74V112Z"/><path d="M150 112V70L172 52L196 70V112Z"/></g>
+<use href="#fl" x="22" y="78"/><use href="#fl" x="166" y="74"/><use href="#fl" x="44" y="100"/><use href="#fl" x="150" y="104"/>
+<path d="M90 112L94 80H114L118 112Z" fill="#c42a1e"/><circle cx="104" cy="74" r="9" fill="#1a0b0b"/><rect x="95" y="69" width="18" height="3.5" fill="#ff3b30"/><g fill="#fff"><rect x="101" y="74" width="3" height="2"/><rect x="106" y="74" width="3" height="2"/></g>
+<rect y="108" width="200" height="17" fill="#0b0505"/></svg>
+<span class="bub">¡Nadie escapará!</span>
+<div class="cap">Una noche, el clan Akai, los ninjas rojos, quemó la aldea.</div></div>
+<div class="p"><span class="n">3</span>
+<svg viewBox="0 0 200 125" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070918"/><stop offset="1" stop-color="#1c2a5c"/></linearGradient></defs>
+<rect width="200" height="125" fill="url(#g3)"/><g fill="#fff"><circle cx="20" cy="20" r="1"/><circle cx="55" cy="12" r="1.2"/><circle cx="175" cy="18" r="1"/><circle cx="30" cy="60" r="1"/><circle cx="185" cy="70" r="1.2"/></g>
+<circle cx="112" cy="46" r="30" fill="#dfe6f5"/><g fill="#b9c3da"><circle cx="102" cy="38" r="6"/><circle cx="122" cy="54" r="8"/><circle cx="118" cy="34" r="3.5"/></g>
+<path d="M70 125V86H92V125Z" fill="#0a0a12"/>
+<g fill="#000" stroke="#8fb0ff" stroke-width=".6" stroke-opacity=".7"><path d="M74 86L76 68H88L90 86Z"/><circle cx="82" cy="62" r="6.5"/><path d="M88 64Q100 62 108 68Q98 66 88 68Z"/></g>
+<path d="M0 125V106H40L50 98L60 106H125L135 98L145 106H200V125Z" fill="#05060f"/></svg>
+<div class="cap">Musashi sobrevivió. Se vistió de negro absoluto para ser uno con la noche.</div></div>
+<div class="p"><span class="n">4</span>
+<svg viewBox="0 0 200 125" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#10281d"/><stop offset="1" stop-color="#c9a24b"/></linearGradient></defs>
+<rect width="200" height="125" fill="url(#g4)"/>
+<g fill="#0a1d14"><path d="M0 106L14 50L28 106Z"/><path d="M20 106L36 40L52 106Z"/><path d="M148 106L164 44L180 106Z"/><path d="M172 106L188 52L204 106Z"/></g>
+<g fill="#c42a1e"><rect x="80" y="50" width="5" height="56"/><rect x="117" y="50" width="5" height="56"/><path d="M71 50H130L126 43H75Z"/><rect x="82" y="59" width="37" height="4"/></g>
+<rect y="104" width="200" height="21" fill="#0a0f0a"/>
+<g stroke="#f4f4f4" stroke-width="3" stroke-linecap="round"><path d="M82 112L122 76"/><path d="M122 112L82 76"/></g><g stroke="#3a2a1a" stroke-width="4" stroke-linecap="round"><path d="M82 112L78 116"/><path d="M122 112L126 116"/></g></svg>
+<span class="bub">¡Lo juro!</span>
+<div class="cap">Ahora avanzará por el bosque, el templo y la fortaleza para vengar a los suyos.</div></div>
+</div>
+<button class="btn" id="go" style="visibility:hidden">Comenzar ⚔</button></div>`;
+$('go').onclick=()=>{show('game');startLevel(0)};
+</script>
+<style>
+#lvls{background:radial-gradient(circle at 80% 8%,#4a1d4f,#0d0b14 60%);justify-content:flex-start;padding-top:28px}
+#lvls h2{margin:0;font:700 clamp(26px,6vw,40px) Georgia,serif;color:#f6e7b4;text-shadow:2px 2px 0 #000}
+#lvls p{margin:0;opacity:.8}
+#tabs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.tb{padding:9px 14px;border:2px solid #000;background:#2a2433;color:#f5ecd6;border-radius:8px;font:700 15px Georgia,serif;cursor:pointer}.tb.on{background:#e03a2f}
+#lg{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;max-width:440px;width:100%}
+.lb{aspect-ratio:1;border:2px solid #000;border-radius:10px;background:#f3e2c0;color:#111;font:700 18px Georgia,serif;cursor:pointer}
+.lb.done{background:#ffd36b;box-shadow:inset 0 0 0 2px #b3261e}.lb:disabled{background:#2a2433;color:#777;cursor:not-allowed}
+</style>
+<section id="lvls" class="scr"><h2>Elige tu nivel</h2><p>4 mapas · 30 niveles cada uno · 120 en total</p><div id="tabs"></div><div id="lg"></div></section>
+<script>
+const MAPS=[{n:'1 · Bosque',sky:['#1b1038','#7a3b5e'],m:'#2a1d45',acc:'#2f6b3d',L:0},{n:'2 · Templo',sky:['#0f1c3a','#c0563b'],m:'#3a2038',acc:'#8a2f2f',L:1},{n:'3 · Montaña',sky:['#0b1d3a','#8fb8d8'],m:'#2c4668',acc:'#cfe3f2',L:2},{n:'4 · Fortaleza',sky:['#1a0505','#ff6a2a'],m:'#2a0a0a',acc:'#b33a1e',L:1}];
+LV.length=0;for(let i=0;i<120;i++){const m=i/30|0,w=i%30,M=MAPS[m];LV.push({n:M.n.slice(4)+' '+(w+1)+'/30',seg:6+(w/3|0)+m*2,sh:Math.min(.6,.05+m*.12+w*.01),sky:M.sky,m:M.m,acc:M.acc,mp:M.L})}
+{const ob=build;build=function(i){const r=ob(i),m=i/30|0,w=i%30,ex=(w/4|0)+m*2;for(let k=0;k<ex;k++){const e=r.en[(k*7+3)%r.en.length],q={...e};q.x=e.a+30+((k*61+i*17)%Math.max(60,e.b-e.a-60));q.sh=(k+i)%5<m+1&&k%2==1;r.en.push(q)}return r}}
+{const ob=bg;bg=function(){const s=L;L=lv.c.mp;ob();L=s}}
+{const ou=update;update=function(dt){const pp=phase;ou(dt);if(pp==='play'&&(phase==='win'||phase==='end'))save(L+1)}}
+let prog=0,tab=0;try{prog=+localStorage.getItem('mus_prog')||0}catch(e){}
+function save(n){if(n>prog){prog=n;try{localStorage.setItem('mus_prog',n)}catch(e){}}}
+function menu(){show('lvls');tab=Math.min(3,prog/30|0);drawMenu()}
+function drawMenu(){$('tabs').innerHTML=MAPS.map((m,i)=>`<button class="tb${i==tab?' on':''}" data-t="${i}">${m.n}</button>`).join('');
+ $('lg').innerHTML=Array.from({length:30},(_,k)=>{const i=tab*30+k,ok=i<=prog;return`<button class="lb${i<prog?' done':''}" ${ok?'':'disabled'} data-l="${i}">${ok?k+1:'🔒'}</button>`}).join('')}
+$('lvls').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.t!=null){tab=+b.dataset.t;drawMenu()}else if(b.dataset.l!=null){show('game');startLevel(+b.dataset.l)}};
+$('go').onclick=menu;
+const mn=document.createElement('button');mn.className='btn';mn.tabIndex=-1;mn.textContent='☰ Niveles';mn.style.cssText='font-size:15px;padding:6px 18px';mn.onclick=()=>{mn.blur();menu()};$('game').appendChild(mn);
+cv.addEventListener('pointerdown',()=>{if(phase==='end')menu()});
+{const os=startLevel;startLevel=function(i){os(i);if(phase==='place'){sx=120;spawnP();$('hint').textContent='A/D o flechas = mover · W/↑/Espacio = saltar (doble salto) · X/J o clic = espadazo'}}}
+</script>
+<style>
+.btn.sec{background:#2a2433;font-size:18px;padding:10px 28px;box-shadow:0 4px 0 #000}
+.mb{display:flex;flex-direction:column;gap:10px;align-items:stretch;margin-top:14px;max-width:300px}
+#ctl{background:#000a;border:2px solid #b3261e;border-radius:10px;padding:10px 14px;font-size:14px;margin-top:12px;line-height:1.7;max-width:380px}
+.fg{animation:dr 3s linear infinite}
+@keyframes dr{0%{opacity:1;transform:translate(0,0)}100%{opacity:0;transform:translate(34px,-26px)}}
+</style>
+<script>
+const frs=Array.from({length:18},(_,i)=>`<rect class='fg' x='${168+(i*7)%58}' y='${88+(i*19)%120}' width='${3+i%4*2}' height='${3+i%4*2}' fill='${i%4?'#000':i%8?'#9a6bff':'#4fd0ff'}' style='animation-delay:${i*.2}s'/>`).join('');
+$('start').innerHTML=`<div class='row'>
+<svg width='250' height='300' viewBox='0 0 260 300' aria-label='Musashi'><defs><linearGradient id='bl' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#4fd0ff'/><stop offset='1' stop-color='#b06cff'/></linearGradient><filter id='gl' x='-50%' y='-50%' width='200%' height='200%'><feGaussianBlur stdDeviation='3' result='b'/><feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge></filter></defs>
+<ellipse cx='130' cy='290' rx='80' ry='7' fill='#0008'/>
+<g fill='#05050a' stroke='#8a6cff55' stroke-width='1'><path d='M92 215L66 286H102L128 236Z'/><path d='M135 225L162 284H198L172 215Z'/><path d='M85 120Q68 172 95 228H168Q188 172 160 120Q124 100 85 120Z' fill='#000'/><circle cx='120' cy='85' r='32' fill='#000'/></g>
+<path d='M96 128L162 222' stroke='#1c1c30' stroke-width='3' fill='none'/><rect x='94' y='72' width='52' height='16' rx='6' fill='#0d0d18'/>
+<g fill='#f0e4ff' filter='url(#gl)'><ellipse cx='110' cy='80' rx='6' ry='2.4'/><ellipse cx='131' cy='80' rx='6' ry='2.4'/></g>
+<path d='M96 142L80 186' stroke='#000' stroke-width='17' stroke-linecap='round'/><circle cx='80' cy='190' r='9' fill='#000'/>
+<g filter='url(#gl)' stroke-linecap='round'><path d='M80 190L222 270' stroke='url(#bl)' stroke-width='9' opacity='.6'/><path d='M80 190L222 270' stroke='#fff' stroke-width='2.5'/></g>
+<g fill='none' stroke='#4fd0ff' stroke-width='2' filter='url(#gl)'><ellipse cx='98' cy='200' rx='24' ry='9' transform='rotate(30 98 200)'/><ellipse cx='122' cy='214' rx='20' ry='7' transform='rotate(30 122 214)' stroke='#b06cff'/></g>
+${frs}</svg>
+<div class='t'><h1>MUSASHI<span>SOMBRA NINJA</span></h1><p id='prg'></p>
+<div class='mb'><button class='btn' id='bPlay'>▶ JUGAR</button><button class='btn sec' id='bStory'>📖 Historia</button><button class='btn sec' id='bCtl'>🎮 Controles</button><button class='btn sec' id='bRst'>↺ Borrar progreso</button></div>
+<div id='ctl' hidden>A / D o ← → : moverse<br>W, ↑ o Espacio: saltar (doble salto)<br>X, J o clic: espadazo<br>C, K o Shift: lanzar shuriken ✦<br>En celular usa los botones en pantalla.</div></div></div>`;
+function home(){show('start');$('prg').textContent=prog?'Progreso: '+Math.min(prog,120)+' / 120 niveles superados':'Tu aventura comienza aquí.';$('bRst').textContent='↺ Borrar progreso'}
+function story(){show('comic');const ps=[...document.querySelectorAll('#comic .p')];ps.forEach(p=>p.classList.remove('show'));$('go').style.visibility='hidden';ps.forEach((p,i)=>setTimeout(()=>p.classList.add('show'),300+i*1300));setTimeout(()=>$('go').style.visibility='visible',300+ps.length*1300)}
+$('bPlay').onclick=()=>prog?menu():story();$('bStory').onclick=story;$('bCtl').onclick=()=>{$('ctl').hidden=!$('ctl').hidden};
+$('bRst').onclick=()=>{if($('bRst').textContent.startsWith('↺')){$('bRst').textContent='¿Seguro? Toca otra vez'}else{prog=0;try{localStorage.removeItem('mus_prog')}catch(e){}home()}};
+const bk=document.createElement('button');bk.className='btn sec';bk.textContent='← Menú principal';bk.onclick=home;$('lvls').appendChild(bk);
+const mh=document.createElement('button');mh.className='btn';mh.tabIndex=-1;mh.textContent='⌂ Menú';mh.style.cssText='font-size:15px;padding:6px 18px';mh.onclick=()=>{mh.blur();home()};
+const rw=document.createElement('div');rw.style.cssText='display:flex;gap:8px';rw.append(mn,mh);$('game').appendChild(rw);
+{const on=ninja;ninja=function(px,py,f,c,band,t,mv,atk){if(band)return on(px,py,f,c,band,t,mv,atk);
+ const r=mv?Math.sin(t*14):0,bob=mv?Math.abs(r)*2.5:Math.sin(t*3)*1.2;
+ x.fillStyle='#0008';x.beginPath();x.ellipse(px,py+2,17,4,0,0,7);x.fill();
+ x.save();x.translate(px,py-bob);x.scale(f,1);x.lineCap=x.lineJoin='round';x.shadowColor='#8a6cff88';x.shadowBlur=7;
+ for(let i=0;i<22;i++){const d=(t*1.4+i*.37)%1,bx=-8-d*34-(i%4)*2,by=-44+(i*7%34)-d*10+Math.sin(t*5+i)*2,s=(1-d)*(i%3+2.2);x.globalAlpha=1-d;x.fillStyle=i%5==0?'#9a6bff':i%7==0?'#4fd0ff':'#000';x.fillRect(bx,by,s,s)}
+ x.globalAlpha=1;x.strokeStyle='#000';x.lineWidth=8;
+ for(const s of[-1,1]){x.beginPath();x.moveTo(s*3,-15);x.lineTo(s*3+r*s*9,-7-(mv&&r*s<0?5:0));x.lineTo(s*3+r*s*13+3,0);x.stroke()}
+ x.fillStyle='#000';x.beginPath();x.moveTo(-8,-39);x.quadraticCurveTo(-14,-25,-9,-12);x.lineTo(9,-12);x.quadraticCurveTo(14,-25,8,-39);x.closePath();x.fill();
+ x.strokeStyle='#1c1c30';x.lineWidth=1.5;x.beginPath();x.moveTo(-8,-37);x.lineTo(8,-16);x.stroke();
+ x.fillStyle='#000';x.beginPath();x.arc(1,-47,10,0,7);x.fill();x.fillStyle='#0d0d18';x.fillRect(-2,-51,12,6);
+ x.shadowColor='#c9a0ff';x.shadowBlur=8;x.fillStyle='#f0e4ff';x.fillRect(3,-49.5,3,2);x.fillRect(7,-49.5,3,2);
+ x.shadowColor='#8a6cff88';x.shadowBlur=7;x.strokeStyle='#000';x.lineWidth=6;const hx=atk?16:9,hy=atk?-33:-22;x.beginPath();x.moveTo(3,-35);x.lineTo(hx,hy);x.stroke();
+ const ex=atk?hx+32:hx+14,ey=atk?hy-4:hy-28,ln=()=>{x.beginPath();x.moveTo(hx,hy);x.lineTo(ex,ey);x.stroke()};
+ x.shadowColor='#9a5cff';x.shadowBlur=atk?16:9;x.lineWidth=atk?7:5;x.strokeStyle='#7a3cff66';ln();x.lineWidth=3.2;x.strokeStyle='#c07cff';ln();x.lineWidth=1.3;x.strokeStyle='#fff';ln();
+ if(atk){x.shadowBlur=0;x.strokeStyle='#4fd0ff';x.lineWidth=1.3;for(let k=0;k<3;k++){x.beginPath();x.ellipse(hx+6+k*9,hy-2-k*.5,3.5,8,-.4+Math.sin(t*20+k),0,7);x.stroke()}}
+ x.restore()}}
+let PS=[],tcd=0;
+function thr(){if(phase!=='play'||tcd>0)return;tcd=.45;PS.push({x:P.x+P.f*14,y:P.y-30,vx:P.f*640,d:0})}
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(!e.repeat&&(k==='c'||k==='k'||k==='shift'))thr()});
+{const ou=update;update=function(dt){ou(dt);tcd-=dt;if(phase==='play'){PS.forEach(s=>{s.x+=s.vx*dt;s.d+=Math.abs(s.vx)*dt;E.forEach(e=>{if(!e.dead&&Math.abs(e.x-s.x)<18&&Math.abs(e.y-26-s.y)<28){e.dead=1;burst(e.x,e.y-20,'#e03a2f');shake=.1;s.d=9999}})});PS=PS.filter(s=>s.d<650)}}}
+{const oh=hud;hud=function(){oh();x.save();x.translate(-cam,0);x.shadowColor='#b07cff';x.shadowBlur=10;x.fillStyle='#e6ecf5';PS.forEach(s=>{x.save();x.translate(s.x,s.y);x.rotate(performance.now()/40);for(let i=0;i<4;i++){x.rotate(Math.PI/2);x.beginPath();x.moveTo(0,0);x.lineTo(3.5,-3.5);x.lineTo(0,-11);x.lineTo(-3.5,-3.5);x.fill()}x.restore()});x.restore();
+ x.fillStyle='#0009';x.beginPath();x.roundRect(10,H-34,92,24,8);x.fill();x.fillStyle=tcd>0?'#888':'#c9a0ff';x.font='bold 14px Georgia';x.textAlign='left';x.fillText('✦ C / K',20,H-17)}}
+{const os=startLevel;startLevel=function(i){PS=[];os(i);if(phase==='play')$('hint').textContent='A/D mover · W/↑/Espacio saltar (doble) · X/J/clic espadazo · C/K/Shift lanzar shuriken ✦'}}
+const sb=document.createElement('button');sb.textContent='✦';sb.onpointerdown=e=>{e.preventDefault();thr()};document.querySelector('#tc div:last-child').prepend(sb);
+home();
+</script>
+<style>
+#splash{background:radial-gradient(circle at 78% 22%,#ffe9a8 0 5%,#f2c96b 6%,transparent 7%),linear-gradient(#1b1038,#4a1d4f 60%,#e0553a)}
+#splash .row{display:flex;align-items:center;gap:48px;flex-wrap:wrap;justify-content:center}
+#splash svg{filter:drop-shadow(0 0 12px #8fb0ffaa) drop-shadow(0 12px 10px #0008);animation:fl 3s ease-in-out infinite}
+#splash .btn{font-size:30px;padding:16px 56px}
+#start{background:radial-gradient(circle at 80% 18%,#ff3b30 0 6%,#8a1c18 7%,transparent 8%),linear-gradient(#07060d,#150b1c 60%,#2a0d12);position:relative;overflow:hidden}
+#start:before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 70px,#08100c 70px 80px,transparent 80px 150px);opacity:.8;pointer-events:none}
+#start .row{position:relative;z-index:1}
+.kj{position:absolute;right:3%;bottom:-6%;font-size:min(46vw,380px);color:#b3261e;opacity:.13;font-family:serif;line-height:1;pointer-events:none}
+.ss{position:absolute;font-size:48px;color:#cfd6e4;opacity:.25;animation:sp 6s linear infinite;pointer-events:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+.kt{height:3px;width:280px;background:linear-gradient(90deg,#b3261e,#e8ecf5 60%,transparent);margin:10px 0 6px}
+.mb .btn{background:linear-gradient(90deg,#b3261e 0 6px,#17141f 6px);border:2px solid #000;color:#f5ecd6;text-align:left;font-size:19px;letter-spacing:2px;padding:12px 26px 12px 22px;box-shadow:none;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,0 100%);transition:.15s}
+.mb .btn:hover{background:linear-gradient(90deg,#ff3b30 0 6px,#2a1620 6px);transform:translateX(8px);filter:none}
+.mb .btn:active{transform:translateX(8px) scale(.98)}
+#bPlay{font-size:25px!important}
+</style>
+<script>
+{const s=$('start'),sv=s.querySelector('svg').outerHTML.replace(/id='(bl|gl)'/g,`id='$1s'`).replace(/url\(#(bl|gl)\)/g,'url(#$1s)');
+const sp=document.createElement('section');sp.id='splash';sp.className='scr';sp.innerHTML=`<div class='row'>${sv}<div class='t'><h1>MUSASHI<span>SOMBRA NINJA</span></h1><p>Un ninja 100% negro contra el clan Akai.</p><button class='btn' id='sPlay'>▶ PLAY</button></div></div>`;document.body.insertBefore(sp,s);$('sPlay').onclick=story;
+s.insertAdjacentHTML('beforeend',`<div class='kj'>忍</div><span class='ss' style='left:6%;top:10%'>✦</span><span class='ss' style='right:12%;bottom:12%;font-size:30px;animation-duration:4s'>✦</span>`);
+s.querySelector('h1').insertAdjacentHTML('beforebegin',`<small style='letter-spacing:4px;color:#e0553a;display:block'>忍者の道 · EL CAMINO NINJA</small>`);
+s.querySelector('h1').insertAdjacentHTML('afterend',`<div class='kt'></div>`);}
+$('bPlay').innerHTML='⚔ JUGAR';$('bStory').innerHTML='📜 HISTORIA';$('bCtl').innerHTML='✦ CONTROLES';
+$('bPlay').onclick=menu;$('go').onclick=home;show('splash');
+const tf=()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();$('fs').onclick=tf;addEventListener('keydown',e=>{if(e.key.toLowerCase()==='f')tf()});
+</script></body></html>
